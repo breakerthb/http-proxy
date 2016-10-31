@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Main jumbotron for a primary marketing message or call to action -->
+<div class="jumbotron">
+    <h1>Hello, world!</h1>
+    <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+    <p><a href="#" class="btn btn-primary btn-lg" role="button">Learn more »</a></p>
+</div>
+
+<form class="form-horizontal" role="form" action="/search/" method="get">
+    <div class="form-group form-group" style="margin:0 auto;">
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="weburl" placeholder="Text input">
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+    
+</form>
+
+{% endblock %}
