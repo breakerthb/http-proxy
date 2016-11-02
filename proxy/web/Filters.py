@@ -6,6 +6,10 @@ import uuid
 import os
 
 from django.conf import settings
+from HtmlPage import URL
+
+import logging
+logger = logging.getLogger("django") # 为loggers中定义的名称
 
 class Filter:
     name = ""
@@ -13,8 +17,8 @@ class Filter:
     def __init__(self):
         self.name = "The base filter"
         
-    def doFilt(self, content):
-        return content
+    def doFilt(self, URLs):
+        return URLs
         
 class FilterChain(Filter):
     filters = []
@@ -26,119 +30,122 @@ class FilterChain(Filter):
         return len(self.filters)
         
     def doFilts(self, content):
+        pattern = r'http://.{0,500}\"'
+        pattern = re.compile(pattern)
+        lstURL = pattern.findall(content)
+        
+        URLs = []
+        
+        logger.info("All URls:");
+        for url in lstURL:
+            #url = url[0:len(url) - 1]
+            url = url.split('\"')[0].split('&')[0]
+            #logger.info(url)
+            URLs.append(URL(url))
+        
         for f in self.filters:
-            print("---- ---- ---- ---- %s ---- ---- ---- ----" % f.name)
-            content = f.doFilt(content)
-            print("---- ---- ---- %s END ---- ---- ---- ----" % f.name)
+            logger.info("---- ---- ---- ---- %s ---- ---- ---- ----" % f.name)
+            URLs = f.doFilt(URLs)
+            logger.info("---- ---- ---- %s END ---- ---- ---- ----" % f.name)
+        '''
+        for url in URLs:
+            logger.info(str(url))
+        '''    
+        
+        logger.info("\n Source URL check:")
+        for url in URLs:
+            if url.getNewURL() == '':
+                continue
+            
+            if content.find(url.getSrcURL()) == -1:
+                logger.info("not find:" + url.getSrcURL())
+                
+            content = content.replace(url.getSrcURL(), url.getNewURL())
+
+        #logger.info(content)
+        
         return content
         
 class PicFilter(Filter):
     def __init__(self):
         self.name = "Pic Filter"
         
-    def doFilt(self, content):
-        
-        if( len(content) != 0 ):  
-            pattern = re.compile(r'<img[^>]*src[=\"\']+([^\"\']*)[\"\'][^>]*>', re.I) 
-            pattern = re.compile(pattern)  
-            lst = pattern.findall(content)
+    def doFilt(self, URLs):
+        for url in URLs:
+            if url.getNewURL() != '':
+                continue
             
-            for url in lst:
-                print(lst)
-                newName = GetPicPath(url)
-                getAndSaveFile(url, newName)
+            ext = url.getExtName()
+            if ext == 'jpg' or ext == 'png' or ext == 'gif' or ext == 'icon':
+                getAndSaveFile(url.getSrcURL(), url.getNewName() + "." + url.getExtName())
+                url.newURL = "/uploads/" + url.getNewName() + "." + url.getExtName()
+                #print(url.srcURL + "-" + url.newURL)
+            else:
+                pass
 
-                newPath = "/uploads/" + newName
-                
-                content = content.replace(url, newPath)
-                
-        return content
+        return URLs
         
-class CSSFilter(Filter):
+class CSS_JSFilter(Filter):
     def __init__(self):
-        self.name = "CSS Filter"
+        self.name = "CSS_JS Filter"
         
-    def doFilt(self, content):
-        if( len(content) != 0 ):  
-            pattern = r'http://.{0,500}\.css'  
-            pattern = re.compile(pattern)  
-            lst = pattern.findall(content)
+    def doFilt(self, URLs):
+        for url in URLs:
+            if url.getNewURL() != '':
+                continue
             
-            #print(lst)
+            ext = url.getExtName()
             
-            for url in lst:
-                newFileName = url.split(".")[-2].replace('/', 'a') + ".css"
-                getAndSaveFile(url, newFileName)
-                
-                newPath = "/uploads/" + newFileName
-                
-                content = content.replace(url, newPath)
+            if ext == 'css' or ext == 'js':
+                getAndSaveFile(url.getSrcURL(), url.getNewName() + "." + url.getExtName())
+                url.newURL = "/uploads/" + url.getNewName() + "." + url.getExtName()
+            else:
+                pass
+
+        return URLs
         
-        return content
-        
-class JSFilter(Filter):
+class LinkFilter(Filter):
     def __init__(self):
-        self.name = "JS Filter"
+        self.name = "Link Filter"
         
-    def doFilt(self, content):
-        if( len(content) != 0 ):  
-            pattern = r'http://.{0,500}\.js'  
-            pattern = re.compile(pattern)  
-            lst = pattern.findall(content)
+    def doFilt(self, URLs):
+        for url in URLs:
+            if url.getNewURL() != '':
+                continue
             
-            print(lst)
-            
-            for url in lst:
-                print(url)
-                newFileName = url.split(".")[-2].replace('/', 'a') + ".js"
+            if url.getExtName() == '' or url.getExtName() == 'shtml':
+                url.newURL = url.getSrcURL().replace("http://", "http://page/")
                 
-                if getAndSaveFile(url, newFileName):
-                    newPath = "/uploads/" + newFileName
-                    #print("--->")
-                    content = content.replace(url, newFileName)
-                    #print("<---")
-                    
-        return content
-        
-def GetPicPath(url):
-    print("save url:%s" % url)
-
-    newFileName = url.split('?')[0]
-
-    # print(newFileName)
-
-    lstName = newFileName.split('.')
-
-    newFileName = lstName[-2].replace('/', 'a') + "." + lstName[-1]
-    
-    print("new file : %s" % newFileName)  
-    
-    return newFileName
+                if url.getNewURL().find("http") == -1:
+                    url.newURL = "/page/" + url.newURL
+                    url.newURL = url.newURL.replace('//', '/')
+                
+                print(url.newURL)
+            
+        return URLs
 
 def getAndSaveFile(fileURL, filename):
-    print("%s 2 %s" % (fileURL, filename))
+    #print("%s 2 %s" % (fileURL, filename))
     
     try:
         request = urllib2.Request(fileURL)
         data = urllib2.urlopen(request).read()
     except urllib2.HTTPError, e:
-        print("Get URL page error!")
-        print(e)
+        logger.warning("Get URL page error! - %s" % fileURL)
+        logger.warning(e)
         return False
         
     file_path = os.path.join(settings.UPLOADS_PATH, filename)
     
-    #print("--->" + file_path)
-    
     if os.path.isfile(file_path):
-        print("----> file exist : %s" % file_path)
+        logger.info("file exist : %s" % file_path)
     else:
         try:
             with open(file_path, 'wb+') as f:
                 #print("open: " + file_path)
                 f.write(data)
         except:
-            print("%s file open failed" % file_path)
+            logger.warning("%s file open failed" % file_path)
         
     return True
         

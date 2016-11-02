@@ -25,5 +25,6 @@ urlpatterns = [
     url(r'^$', web_views.home, name='home'),
     
     url(r'^search', web_views.search, name='search'),
+    url(r'^page', web_views.page, name='page'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
