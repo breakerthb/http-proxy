@@ -17,8 +17,8 @@ class Filter:
     def __init__(self):
         self.name = "The base filter"
         
-    def doFilt(self, URLs):
-        return URLs
+    def doFilt(self, dictURLs):
+        return dictURLs
         
 class FilterChain(Filter):
     filters = []
@@ -37,39 +37,45 @@ class FilterChain(Filter):
         pattern = r'href=\"/.{0,500}?\"'
         pattern = re.compile(pattern)
         lstURL1 = pattern.findall(content)
-        print(lstURL1)
         lstURL1 = [url[6:] for url in lstURL1]
 
         lstURL.extend(lstURL1)
         
-        URLs = []
+        dictURLs = {}
         
         logger.info("All URls:");
         for url in lstURL:
-            #url = url[0:len(url) - 1]
             url = url.split('\"')[0].split('&')[0]
+            
             #logger.info(url)
-            URLs.append(URL(url))
+            
+            dictURLs[url] = URL(url)
         
         for f in self.filters:
             logger.info("---- ---- ---- ---- %s ---- ---- ---- ----" % f.name)
-            URLs = f.doFilt(URLs)
-            logger.info("---- ---- ---- %s END ---- ---- ---- ----" % f.name)
-        '''
-        for url in URLs:
-            logger.info(str(url))
-        '''    
+            logger.info("--->url count : %d" % len(dictURLs))
+            dictURLs = f.doFilt(dictURLs)
+            logger.info("--->url count : %d" % len(dictURLs))
+            logger.info("---- ---- ---- %s END ---- ---- ---- ----\n" % f.name)
         
-        logger.info("\n Source URL check:")
-        for url in URLs:
-            if url.getNewURL() == '':
+        logger.info("")
+        logger.info("Source URL check:")
+        logger.info("--->url count : %d" % len(dictURLs))
+        for k in dictURLs.keys():
+            if dictURLs[k].getNewURL() == '':
                 continue
+            
+            url = dictURLs[k]
             
             if content.find(url.getSrcURL()) == -1:
                 logger.info("not find:" + url.getSrcURL())
                 
+            #logger.info("replace : %s - %s" % (url.getSrcURL(), url.getNewURL()))
             content = content.replace(url.getSrcURL(), url.getNewURL())
 
+        # path
+        content = content.replace("/page?url=/page?url=", "/page?url=")
+        
         #logger.info(content)
         
         return content
@@ -78,49 +84,67 @@ class PicFilter(Filter):
     def __init__(self):
         self.name = "Pic Filter"
         
-    def doFilt(self, URLs):
-        for url in URLs:
-            if url.getNewURL() != '':
+    def doFilt(self, dictURLs):
+        
+        #logger.info(dictURLs.keys())
+        
+        for k in dictURLs.keys():
+            if dictURLs[k].getNewURL() != '':
                 continue
+            
+            url = dictURLs[k]
+            
+            #logger.info(str(url))
             
             ext = url.getExtName()
             if ext == 'jpg' or ext == 'png' or ext == 'gif' or ext == 'icon':
                 getAndSaveFile(url.getSrcURL(), url.getNewName() + "." + url.getExtName())
+                
                 url.newURL = "/uploads/" + url.getNewName() + "." + url.getExtName()
-                #print(url.srcURL + "-" + url.newURL)
+                logger.info(url.srcURL + "-" + url.newURL)
+                
+                
+                #logger.info(str(url))
+                dictURLs[k] = url
+                #logger.info(str(dictURLs[k]))
             else:
                 pass
 
-        return URLs
+        return dictURLs
         
 class CSS_JSFilter(Filter):
     def __init__(self):
         self.name = "CSS_JS Filter"
         
-    def doFilt(self, URLs):
-        for url in URLs:
-            if url.getNewURL() != '':
+    def doFilt(self, dictURLs):
+        for k in dictURLs.keys():
+            if dictURLs[k].getNewURL() != '':
                 continue
+            
+            url = dictURLs[k]
             
             ext = url.getExtName()
             
             if ext == 'css' or ext == 'js':
                 getAndSaveFile(url.getSrcURL(), url.getNewName() + "." + url.getExtName())
                 url.newURL = "/uploads/" + url.getNewName() + "." + url.getExtName()
+                
+                dictURLs[k] = url
             else:
                 pass
-
-        return URLs
+            
+        return dictURLs
         
 class LinkFilter(Filter):
     def __init__(self):
         self.name = "Link Filter"
         
-    def doFilt(self, URLs):
-        for url in URLs:
-            #logger.info("%s | %s" % (url.getSrcURL(), url.getExtName()))
-            if url.getNewURL() != '':
+    def doFilt(self, dictURLs):
+        for k in dictURLs.keys():
+            if dictURLs[k].getNewURL() != '':
                 continue
+            
+            url = dictURLs[k]
             
             if url.getExtName() == '' or url.getExtName() == 'shtml':
                 
@@ -131,8 +155,12 @@ class LinkFilter(Filter):
                 #url.newURL = url.newURL.replace('//', '/')
 
                 #print(url.newURL)
+                
+                dictURLs[k] = url
+            else:
+                pass
             
-        return URLs
+        return dictURLs
 
 def getAndSaveFile(fileURL, filename):
     #print("%s 2 %s" % (fileURL, filename))

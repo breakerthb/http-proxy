@@ -22,7 +22,7 @@ class URL:
         self.newName = lstName[-2].replace("/", "1").replace("-", "a")
         
     def __str__(self):
-        return u'URL : %s|%s' % (self.srcURL, self.newURL) 
+        return u'URL Instance : \n\t url : (%s - %s) \n\t name : (%s -  %s) \n\t %s' % (self.srcURL, self.newURL, self.srcName, self.newName, self.extName) 
         
     def getSrcURL(self):
         return self.srcURL

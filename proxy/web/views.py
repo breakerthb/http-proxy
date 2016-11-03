@@ -26,9 +26,13 @@ def home(request):
     return render(request, "home.html")
     
     
-    
+g_saveURL = ''
 def search(request):
     url = request.GET['weburl']
+    
+    g_saveURL = "http://" + url[7:].split('/')[0]
+    request.session['saveurl'] = g_saveURL
+    print(g_saveURL)
     
     content = getContent(url)
     
@@ -36,6 +40,11 @@ def search(request):
     
 def page(request):
     url = request.GET['url']
+    
+    if url.find("http") == -1:
+        g_saveURL = request.session['saveurl']
+        url = g_saveURL + url
+    
     print("page access : %s" % url)
     content = getContent(url)
     
