@@ -34,8 +34,9 @@ def search(request):
     
     return HttpResponse(content)
     
-def page(request, url):
-    print(url)
+def page(request):
+    url = request.GET['url']
+    print("page access : %s" % url)
     content = getContent(url)
     
     return HttpResponse(content)

@@ -34,6 +34,14 @@ class FilterChain(Filter):
         pattern = re.compile(pattern)
         lstURL = pattern.findall(content)
         
+        pattern = r'href=\"/.{0,500}?\"'
+        pattern = re.compile(pattern)
+        lstURL1 = pattern.findall(content)
+        print(lstURL1)
+        lstURL1 = [url[6:] for url in lstURL1]
+
+        lstURL.extend(lstURL1)
+        
         URLs = []
         
         logger.info("All URls:");
@@ -110,17 +118,19 @@ class LinkFilter(Filter):
         
     def doFilt(self, URLs):
         for url in URLs:
+            #logger.info("%s | %s" % (url.getSrcURL(), url.getExtName()))
             if url.getNewURL() != '':
                 continue
             
             if url.getExtName() == '' or url.getExtName() == 'shtml':
-                url.newURL = url.getSrcURL().replace("http://", "http://page/")
                 
-                if url.getNewURL().find("http") == -1:
-                    url.newURL = "/page/" + url.newURL
-                    url.newURL = url.newURL.replace('//', '/')
+                #logger.info("%s | %s" % (url.getSrcURL(), url.getExtName()))
                 
-                print(url.newURL)
+                #print(url.getSrcURL())
+                url.newURL = "/page?url=" + url.getSrcURL()
+                #url.newURL = url.newURL.replace('//', '/')
+
+                #print(url.newURL)
             
         return URLs
 
