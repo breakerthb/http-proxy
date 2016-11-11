@@ -16,10 +16,14 @@ class URL:
         
         lstName = url.split('.')
         
-        #self.extName = lstName[-1]
-        self.extName = os.path.splitext(url)[1][1:]
-        self.srcName = lstName[-2].split("/")[-1]
-        self.newName = lstName[-2].replace("/", "1").replace("-", "a")
+        try:
+            #self.extName = lstName[-1]
+            self.extName = os.path.splitext(url)[1][1:]
+            self.srcName = lstName[-2].split("/")[-1]
+            self.newName = lstName[-2].replace("/", "1").replace("-", "a")
+        except:
+            print("Error:" + str(lstName))
+            pass
         
     def __str__(self):
         return u'URL Instance : \n\t url : (%s - %s) \n\t name : (%s -  %s) \n\t %s' % (self.srcURL, self.newURL, self.srcName, self.newName, self.extName) 

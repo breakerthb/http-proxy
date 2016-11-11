@@ -3,6 +3,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
+from django.template import RequestContext
+
+from form import UploadFileForm
 
 import os
 import re
@@ -24,8 +27,7 @@ def global_setting(request):
     
 def home(request):
     return render(request, "home.html")
-    
-    
+
 g_saveURL = ''
 def search(request):
     url = request.GET['weburl']
@@ -69,3 +71,38 @@ def getContent(url):
     logger.info("---- ---- ---- ---- ---- Request End ---- ---- ---- ----- ----\n\n")
     
     return content
+    
+stat = {'status':False,'data':None,'msg':None}
+def upload_file(request):
+    if request.method == 'POST':
+        #print("XXX")
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            #print("---")
+            img_path = handle_uploaded_file(request.FILES['file'])
+            img_path = 'https://django-workspace-breakerthb.c9users.io/' + img_path
+            return render(request, 'picbed.html', {'form': form, 'img_path': img_path}, context_instance=RequestContext(request))
+    else:
+        form = UploadFileForm()
+    return render(request, 'picbed.html', {'form': form}, context_instance=RequestContext(request))
+
+def handle_uploaded_file(f):
+    newName = getRandName() + os.path.splitext(f.name)[1]
+    #print(newName)
+    img_path = os.path.join(settings.MEDIA_URL, newName)
+    #print(img_path)
+    destination = open(img_path, 'wb+')
+    for chunk in f.chunks():
+        destination.write(chunk)
+    destination.close()
+    
+    return img_path
+    
+def getRandName():
+    name = str(uuid.uuid1())
+    print(name)
+    return name.replace('-', 'A')
+    
+def test(request):
+    a = os.path.splitext('abc.jpg')[1]
+    return HttpResponse("           " + str(a))

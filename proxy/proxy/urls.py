@@ -24,7 +24,11 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', web_views.home, name='home'),
     
+    url(r'^upload_file', web_views.upload_file, name='upload_file'),
+    
     url(r'^search', web_views.search, name='search'),
     url(r'^page', web_views.page, name='page'),
+    
+    url(r'^test/$', web_views.test, name='test'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Main jumbotron for a primary marketing message or call to action -->
+
+<form class="form-horizontal" role="form" action="/upload_file/" enctype="multipart/form-data" method="POST">
+    <div class="jumbotron">
+     {% csrf_token %}
+     {{ form }}
+    <br/>
+    <input type="submit" name="提交">
+    <!--
+    
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="weburl" placeholder="Text input">
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    
+    -->
+    </div>
+</form>
+
+<br/>
+
+
+<img src="{{ img_path }}">
+
+<p>{{ img_path }}</p>
+
+{% endblock %}

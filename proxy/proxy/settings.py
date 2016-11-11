@@ -159,7 +159,7 @@ STATICFILES_DIRS = (
 )
 
 #配置文件的上传路径
-MEDIA_URL = '/uploads/' # 相对路径
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads') #绝对路径
+MEDIA_URL = 'uploads/' 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads') 
 
 UPLOADS_PATH = 'uploads/'
