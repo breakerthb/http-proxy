@@ -23,9 +23,36 @@
 
 <br/>
 
+<div id="divshow" style="display: none;">
 
 <img src="{{ img_path }}">
 
-<p>{{ img_path }}</p>
+<textarea id="text">{{ img_path }}</textarea>
+<button id="btn">复制到剪贴板</button>
+
+</div>
+
+<script>
+    window.onload=function(event){
+        var imgpath = document.getElementById('text').value; 
+        
+        //alert(imgpath);
+        
+        var divShow=document.getElementById("divshow");
+        
+        if(imgpath!="")
+        {
+            //alert("null")
+            divShow.style.display="block";
+        }
+     
+        
+        var button=document.getElementById("btn");
+        button.onclick=function(event){
+            document.getElementById("text").select();
+            document.execCommand("copy",false,null);
+        };
+    };
+</script>
 
 {% endblock %}
